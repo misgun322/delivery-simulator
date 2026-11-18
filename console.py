@@ -72,13 +72,15 @@ def _show_order(order: Order) -> None:
             f" = {_money(item.subtotal)}"
         )
     print(f"Товары: {_money(order.items_total)}")
-    if order.delivery_method is not None:
-        print(f"Способ доставки: {order.delivery_method.name}")
-        print(f"Стоимость доставки: {_money(order.delivery_cost)}")
+    method = order.delivery_method
+    delivery_cost = order.delivery_cost
+    if method is not None and delivery_cost is not None:
+        print(f"Способ доставки: {method.name}")
+        print(f"Стоимость доставки: {_money(delivery_cost)}")
         print(f"Ориентировочный срок: {order.delivery_hours} ч.")
     else:
         print("Способ доставки: не выбран")
-    if order.delivery_method is not None and not order.delivery_method.requires_courier:
+    if method is not None and not method.requires_courier:
         print("Курьер: не требуется")
     else:
         print(f"Курьер: {order.courier or 'не назначен'}")

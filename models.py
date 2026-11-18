@@ -141,6 +141,8 @@ class Order:
     def set_delivery_method(self, method: DeliveryMethod) -> None:
         if self._status is not OrderStatus.NEW:
             raise ValueError("Выбрать способ доставки можно только для нового заказа.")
+        if not isinstance(method, DeliveryMethod):
+            raise ValueError("Выберите один из способов доставки.")
         if method.requires_courier and not self._address:
             raise ValueError("Для курьерской доставки нужен адрес.")
         if not method.requires_courier:
@@ -148,6 +150,8 @@ class Order:
         self._delivery_method = method
 
     def assign_courier(self, courier: Courier) -> None:
+        if not isinstance(courier, Courier):
+            raise ValueError("Назначить можно только курьера.")
         if self._status not in (OrderStatus.NEW, OrderStatus.CONFIRMED):
             raise ValueError("Курьера можно назначить до начала доставки.")
         if self._delivery_method is None:
@@ -157,6 +161,8 @@ class Order:
         self._courier = courier
 
     def change_status(self, target: OrderStatus) -> None:
+        if not isinstance(target, OrderStatus):
+            raise ValueError("Выберите один из статусов заказа.")
         if target not in self._TRANSITIONS[self._status]:
             raise ValueError(
                 f"Недопустимый переход: «{self._status.value}» → «{target.value}»."
