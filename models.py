@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from decimal import Decimal
 
+from delivery import DeliveryMethod
+
 
 @dataclass(frozen=True)
 class Customer:
@@ -53,6 +55,7 @@ class Order:
         self._customer = customer
         self._address = address.strip()
         self._items: list[OrderItem] = []
+        self._delivery_method: DeliveryMethod | None = None
 
     @property
     def number(self) -> int:
@@ -74,7 +77,33 @@ class Order:
     def items_total(self) -> Decimal:
         return sum((item.subtotal for item in self._items), Decimal("0.00"))
 
+    @property
+    def delivery_method(self) -> DeliveryMethod | None:
+        return self._delivery_method
+
+    @property
+    def delivery_cost(self) -> Decimal | None:
+        if self._delivery_method is None:
+            return None
+        return self._delivery_method.calculate_cost(self)
+
+    @property
+    def delivery_hours(self) -> int | None:
+        if self._delivery_method is None:
+            return None
+        return self._delivery_method.estimate_hours()
+
+    @property
+    def total_cost(self) -> Decimal:
+        delivery_cost = self.delivery_cost
+        return self.items_total if delivery_cost is None else self.items_total + delivery_cost
+
     def add_item(self, item: OrderItem) -> None:
         if not isinstance(item, OrderItem):
             raise ValueError("В заказ можно добавить только позицию заказа.")
         self._items.append(item)
+
+    def set_delivery_method(self, method: DeliveryMethod) -> None:
+        if method.requires_courier and not self._address:
+            raise ValueError("Для курьерской доставки нужен адрес.")
+        self._delivery_method = method
